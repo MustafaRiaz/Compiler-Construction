@@ -11,7 +11,7 @@ using namespace std;
 
 enum TokenType {
     T_INT, T_FLOAT, T_DOUBLE, T_STRING, T_BOOL, T_CHAR,
-    T_ID, T_NUM, T_IF, T_ELSE, T_RETURN, 
+    T_ID, T_NUM, T_IF, T_ELSE, T_WHILE, T_FOR, T_BREAK, T_CONTINUE, T_RETURN, 
     T_ASSIGN, T_PLUS, T_MINUS, T_MUL, T_DIV, 
     T_LPAREN, T_RPAREN, T_LBRACE, T_RBRACE,  
     T_SEMICOLON, T_GT, T_EOF, 
@@ -52,19 +52,34 @@ public:
                 continue;
             }
             if (isalpha(current)) {
-                string word = consumeWord();
-                if (word == "int") tokens.push_back(Token{T_INT, word});
-                else if (word == "float") tokens.push_back(Token{T_FLOAT, word});
-                else if (word == "double") tokens.push_back(Token{T_DOUBLE, word});
-                else if (word == "string") tokens.push_back(Token{T_STRING, word});
-                else if (word == "bool") tokens.push_back(Token{T_BOOL, word});
-                else if (word == "char") tokens.push_back(Token{T_CHAR, word});
-                else if (word == "if") tokens.push_back(Token{T_IF, word});
-                else if (word == "else") tokens.push_back(Token{T_ELSE, word});
-                else if (word == "return") tokens.push_back(Token{T_RETURN, word});
-                else tokens.push_back(Token{T_ID, word});
-                continue;
+            string word = consumeWord();
+            
+            if (word == "int") tokens.push_back(Token{T_INT, word});
+            else if (word == "float") tokens.push_back(Token{T_FLOAT, word});
+            else if (word == "double") tokens.push_back(Token{T_DOUBLE, word});
+            else if (word == "string") tokens.push_back(Token{T_STRING, word});
+            else if (word == "bool") tokens.push_back(Token{T_BOOL, word});
+            else if (word == "char") tokens.push_back(Token{T_CHAR, word});
+            else if (word == "anj") tokens.push_back(Token{T_IF, word});   // Replaced 'if' with 'anj'
+            else if (word == "unj") tokens.push_back(Token{T_ELSE, word}); // Replaced 'else' with 'unj'
+            else if (word == "while") tokens.push_back(Token{T_WHILE, word});  
+            else if (word == "for") tokens.push_back(Token{T_FOR, word});      
+            else if (word == "break") tokens.push_back(Token{T_BREAK, word});  
+            else if (word == "continue") tokens.push_back(Token{T_CONTINUE, word});  
+            else if (word == "return") tokens.push_back(Token{T_RETURN, word});
+            else if (word == "if") {
+                cout << "Keyword error: 'if' is not valid, did you mean 'anj'?" << endl;
+                exit(1);
             }
+            else if (word == "else") {
+                cout << "Keyword error: 'else' is not valid, did you mean 'unj'?" << endl;
+                exit(1);
+            }
+            else {
+                tokens.push_back(Token{T_ID, word});
+            }
+            continue;
+        }
 
             
             switch (current) {
@@ -112,10 +127,10 @@ public:
 
     void parseProgram() {
         if (tokens[pos].type == T_INT && tokens[pos + 1].type == T_ID && tokens[pos + 2].type == T_LPAREN) {
-            parseFunction();  // Handle function definition if detected
+            parseFunction();
         } else {
             while (tokens[pos].type != T_EOF) {
-                parseStatement();  // Handle regular statements
+                parseStatement();
             }
         }
         cout << "Parsing completed successfully! No Syntax Error" << endl;

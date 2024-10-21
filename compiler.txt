@@ -3,9 +3,9 @@ int main() {
     a = 5;
     int b;
     b = a + 10;
-    if (b > 10) {
+    anj (b > 10) {
         return b;
-    } else {
+    } unj {
         return 0;
     }
 }
