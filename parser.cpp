@@ -10,7 +10,8 @@
 using namespace std;
 
 enum TokenType {
-    T_INT, T_ID, T_NUM, T_IF, T_ELSE, T_RETURN, 
+    T_INT, T_FLOAT, T_DOUBLE, T_STRING, T_BOOL, T_CHAR,
+    T_ID, T_NUM, T_IF, T_ELSE, T_RETURN, 
     T_ASSIGN, T_PLUS, T_MINUS, T_MUL, T_DIV, 
     T_LPAREN, T_RPAREN, T_LBRACE, T_RBRACE,  
     T_SEMICOLON, T_GT, T_EOF, 
@@ -52,13 +53,19 @@ public:
             }
             if (isalpha(current)) {
                 string word = consumeWord();
-                if (word == "int") tokens.push_back(Token{T_INT, word, line});
-                else if (word == "if") tokens.push_back(Token{T_IF, word, line});
-                else if (word == "else") tokens.push_back(Token{T_ELSE, word, line});
-                else if (word == "return") tokens.push_back(Token{T_RETURN, word, line});
-                else tokens.push_back(Token{T_ID, word, line});
+                if (word == "int") tokens.push_back(Token{T_INT, word});
+                else if (word == "float") tokens.push_back(Token{T_FLOAT, word});
+                else if (word == "double") tokens.push_back(Token{T_DOUBLE, word});
+                else if (word == "string") tokens.push_back(Token{T_STRING, word});
+                else if (word == "bool") tokens.push_back(Token{T_BOOL, word});
+                else if (word == "char") tokens.push_back(Token{T_CHAR, word});
+                else if (word == "if") tokens.push_back(Token{T_IF, word});
+                else if (word == "else") tokens.push_back(Token{T_ELSE, word});
+                else if (word == "return") tokens.push_back(Token{T_RETURN, word});
+                else tokens.push_back(Token{T_ID, word});
                 continue;
             }
+
             
             switch (current) {
                 case '=': tokens.push_back(Token{T_ASSIGN, "=", line}); break;
@@ -104,11 +111,16 @@ public:
     }
 
     void parseProgram() {
-        while (tokens[pos].type != T_EOF) {
-            parseStatement();
+        if (tokens[pos].type == T_INT && tokens[pos + 1].type == T_ID && tokens[pos + 2].type == T_LPAREN) {
+            parseFunction();  // Handle function definition if detected
+        } else {
+            while (tokens[pos].type != T_EOF) {
+                parseStatement();  // Handle regular statements
+            }
         }
         cout << "Parsing completed successfully! No Syntax Error" << endl;
     }
+
 
 private:
     vector<Token> tokens;
@@ -139,10 +151,18 @@ private:
     }
 
     void parseDeclaration() {
-        expect(T_INT);
+    if (tokens[pos].type == T_INT || tokens[pos].type == T_FLOAT || 
+        tokens[pos].type == T_DOUBLE || tokens[pos].type == T_STRING || 
+        tokens[pos].type == T_BOOL || tokens[pos].type == T_CHAR) {
+        pos++; 
         expect(T_ID);
         expect(T_SEMICOLON);
+    } else {
+        cout << "Syntax error: expected a valid data type" << endl;
+        exit(1);
     }
+}
+
 
     void parseAssignment() {
         expect(T_ID);
@@ -180,6 +200,14 @@ private:
             parseExpression();
         }
     }
+    void parseFunction() {
+        expect(T_INT);      // Expect return type (for now only 'int')
+        expect(T_ID);       // Expect function name (like 'main')
+        expect(T_LPAREN);   // Expect opening parenthesis '('
+        expect(T_RPAREN);   // Expect closing parenthesis ')'
+        parseBlock();       // Expect the function body in curly braces
+    }
+
 
     void parseTerm() {
         parseFactor();
@@ -197,9 +225,11 @@ private:
             parseExpression();
             expect(T_RPAREN);
         } else {
-            reportError("unexpected token", tokens[pos]);
+            cout << "Syntax error: unexpected token " << tokens[pos].value << " at line: " << pos << endl;
+            exit(1);
         }
     }
+
 
     void expect(TokenType type) {
         if (tokens[pos].type == type) {
